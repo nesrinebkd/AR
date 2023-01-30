@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="list.css" />
+  </head>
+  <body>
+    <button onclick="window.location.replace('listJoueur.html')">
+      Return to players list
+    </button>
+    <br />
+    <br />
+    <div class="flex-container" style="display: flex"></div>
+    <script>
+      let urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('id');
+      async function loadPlayerData() {
+        await fetch('http://localhost:3200/api/Player/' + id, {
+          headers: {
+            Accept: '*/*',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'cross-site',
+          },
+          method: 'GET',
+          mode: 'cors',
+        })
+          .then(function (prm) {
+            return prm.json();
+          })
+          .then(function (rep) {
+            player = rep['player'][0];
+            console.log(player);
+            p = `<div>`;
+            p += `<img style="height:100%;" 
+style="width:100%;"alt="${player.name}" src="${player.photo}"/>`;
+            p += `</div> <div>`;
+            p += `<h1> ${player.name}</h1>`;
+            p += `<h3> Age : ${player.Age}</h3>`;
+            p += `<h3> position : ${player.position}</h3>`;
+            p += `<h3> Club : ${player.club}</h3>`;
+            p += `<h3> Country : ${player.country}</h3>`;
+            p += `</div>`;
+            console.log(p);
+            document.querySelector('.flex-container').innerHTML = p;
+          })
+          .catch((err) => {
+            console.log('Client error = ', err);
+          })
+          .catch((err) => {
+            console.log('Server error = ', err);
+          });
+      }
+      loadPlayerData();
+    </script>
+  </body>
+</html>

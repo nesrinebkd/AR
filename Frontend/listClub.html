@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="list.css" />
+  </head>
+  <body>
+    <button onclick="window.location.replace('listMatch.html')">
+      Match list
+    </button>
+    <h2>La liste de Clubs</h2>
+    <div class="grid-container"></div>
+    <div class="btn"></div>
+    <script>
+      LoadClubs();
+      async function LoadClubs() {
+        await fetch('http://localhost:3200/api/listClubs', {
+          headers: {
+            Accept: '*/*',
+            'Accept-Language': 'fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3',
+          },
+          method: 'GET',
+          mode: 'cors',
+        })
+          .then((res) => {
+            return res.json();
+          })
+          .then((data) => {
+            console.log(data);
+            let clubs = '';
+            for (let index = 0; index < data.length; index++) {
+              clubs += '<div class="grid-item">';
+              clubs += `<img alt="${data[index].nom}" src="${data[index].logo}"/>`;
+              clubs += `<br> <strong>${data[index].nom}</strong> <br>`;
+              clubs += `<button onclick="window.location.replace('PlayersClubList.html?id=${data[index].id}')"> Display club's Players </button>`;
+              clubs += `  <button class="delete"  onclick="deleteClub(${data[index].id})"> Delete </button>`;
+              clubs += `</div>`;
+            }
+            btn = `<button  onclick="window.location.replace('createClub.html')"> Create a new club </button>`;
+
+            document.querySelector('.grid-container').innerHTML = clubs;
+            document.querySelector('.btn').innerHTML = btn;
+          })
+          .catch((err) => {
+            console.log('err client', err);
+          })
+          .catch((err) => {
+            console.log('err server', err);
+          });
+      }
+
+      async function deleteClub(id) {
+        let conf = window.confirm(
+          'Confirmer la suppression du club ' + id + ' ?'
+        );
+        if (conf) {
+          fetch('http://localhost:3200/api/deleteClub/' + id, {
+            headers: {
+              authorization: 'JWT ' + window.localStorage.getItem('token'),
+            },
+            method: 'delete',
+          })
+            .then(function (prm) {
+              if (prm.status === 500) {
+                return prm.json().then(function (rep) {
+                  alert(rep.error);
+                });
+              } else if (prm.status === 200) {
+                return prm.json().then(function (rep) {
+                  alert(rep.message);
+                  window.location.reload();
+                });
+              }
+            })
+            .catch(function (err) {
+              alert('Erreur au niveau client !');
+            })
+            .catch(function (err) {
+              alert('Une erreur a empêché la suppression !');
+            });
+        }
+      }
+    </script>
+  </body>
+</html>

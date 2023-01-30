@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="table.css" />
+  </head>
+  <body>
+    <h1 id="h1"></h1>
+    <button onclick="window.location.replace('listClub.html')">
+      Club list
+    </button>
+    <br />
+    <br />
+    <table id="players"></table>
+
+    <script>
+      let urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('id');
+      PlayersClubList(id);
+      async function PlayersClubList(id) {
+        await fetch('http://localhost:3200/api/PlayersClub/' + id, {
+          headers: {
+            Accept: '*/*',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'cross-site',
+          },
+          method: 'GET',
+          mode: 'cors',
+        })
+          .then(function (prm) {
+            return prm.json();
+          })
+          .then(function (rep) {
+            console.log(rep);
+            let club = rep[0].club;
+            let player = `<tr>
+        <th>Name</th>
+        <th>Nationality</th>
+        <th>More</th>
+      </tr>`;
+            for (let index = 0; index < rep.length; index++) {
+              const element = rep[index];
+              player += `<tr>`;
+              player += `<td> ${element.name}</td> `;
+              player += `<td> ${element.country}</td> `;
+              player += `<td> <button onclick="window.location.replace('playerDetails.html?id=${element.player_id}')"> Display Details  </button></td> `;
+              player += `</tr>`;
+            }
+            document.querySelector('#h1').innerText = club;
+            document.querySelector('#players').innerHTML = player;
+          })
+          .catch((err) => {
+            console.log('Client error = ', err);
+          })
+          .catch((err) => {
+            console.log('Server error = ', err);
+          });
+      }
+    </script>
+  </body>
+</html>

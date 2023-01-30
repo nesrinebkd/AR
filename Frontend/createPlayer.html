@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="list.css" />
+  </head>
+  <style>
+    input[type='text'],
+    select {
+      width: 100%;
+      padding: 12px 20px;
+      margin: 8px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    input[type='file'] {
+      width: 100%;
+      padding: 12px 20px;
+      margin: 8px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+    input[type='submit'] {
+      width: 100%;
+      background-color: #4caf50;
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    input[type='submit']:hover {
+      background-color: #45a049;
+    }
+  </style>
+  <body>
+    <button onclick="window.location.replace('listJoueur.html')">
+      Players List
+    </button>
+    <form action="http://localhost:3200/api/createPlayer">
+      <label for="">Name :</label>
+      <input type="text" id="nom" name="nom" />
+      <label for="">Age:</label>
+      <input type="text" id="age" name="age" />
+      <select name="position" id="position">
+        <option value="goalkeeper">Goal-keeper</option>
+        <option value="defender">Defender</option>
+        <option value="midfielder">Midfielder</option>
+        <option value="forward">forward</option>
+      </select>
+      <select name="pays" id="pays"></select>
+      <select name="club" id="club"></select>
+      <input
+        type="file"
+        id="photo"
+        name="photo"
+        accept="image/png, image/jpeg"
+      />
+      <input id="submit" type="submit" value="submit" />
+    </form>
+
+    <script>
+      async function loadPays() {
+        await fetch('http://localhost:3200/api/listPays', {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0',
+            Accept: '*/*',
+            'Accept-Language': 'fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3',
+          },
+          method: 'GET',
+          mode: 'cors',
+        })
+          .then(function (prm) {
+            return prm.json();
+          })
+          .then(function (rep) {
+            console.log(rep);
+            let options = '';
+            for (let index = 0; index < rep.length; index++) {
+              options +=
+                '<option value=' +
+                rep[index]['id'] +
+                '> ' +
+                rep[index]['nom'] +
+                ' </option>';
+            }
+            document.querySelector('#pays').innerHTML = options;
+          })
+          .catch((err) => {
+            console.log('Client error = ', err);
+          })
+          .catch((err) => {
+            console.log('Server error = ', err);
+          });
+      }
+      loadPays();
+      loadClubs();
+      async function loadClubs() {
+        await fetch('http://localhost:3200/api/listClubs', {
+          headers: {
+            Accept: '*/*',
+            'Accept-Language': 'fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3',
+          },
+          method: 'GET',
+          mode: 'cors',
+        })
+          .then((res) => {
+            return res.json();
+          })
+          .then((data) => {
+            let options = '';
+            for (let index = 0; index < data.length; index++) {
+              options +=
+                '<option value=' +
+                data[index]['id'] +
+                '> ' +
+                data[index]['nom'] +
+                ' </option>';
+            }
+
+            document.querySelector('#club').innerHTML = options;
+          })
+          .catch((err) => {
+            console.log('client error :', err);
+          })
+          .catch((err) => {
+            console.log('server error : ', err);
+          });
+      }
+
+      async function createPlayer(form) {
+        await fetch('http://localhost:3200/api/createPlayer', {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(form),
+          method: 'POST',
+        })
+          .then((res) => {
+            if (res.status === 201) {
+              alert('Joueur crée avec succes');
+              window.location.replace('listJoueur.html');
+            } else {
+              alert('Joueur non crée !');
+            }
+          })
+
+          .catch((err) => console.log(err));
+      }
+
+      document.querySelector('form').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        let form = new FormData(e.target);
+
+        let jsonForm = {
+          nom: form.get('nom'),
+          age: form.get('age'),
+          position: form.get('position'),
+          pays: form.get('pays'),
+          club: form.get('club'),
+          photo: form.get('photo').toString(), //how to do it ?
+        };
+        createPlayer(jsonForm);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="table.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <button onclick="window.location.replace('NotYetPlayed.html')"><-</button>
+    <button onclick="window.location.replace('listMatch.html')">
+      ALL matches
+    </button>
+    <div id="div1"></div>
+    <div>
+      <h4 id="h4"></h4>
+    </div>
+    <div>
+      <table id="table"></table>
+    </div>
+    <div>
+      <table id="table2"></table>
+    </div>
+  </body>
+  <script>
+    let urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    async function loadMatcheData() {
+      await fetch('http://localhost:3200/api/Matche/' + id, {
+        //recuperer l'id du match qu'on veut afficher la méteo
+        headers: {
+          Accept: '*/*',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Site': 'cross-site',
+          'Sec-Fetch-Site': 'cross-site',
+          authorization: 'JWT ' + window.localStorage.getItem('token'),
+        },
+        method: 'GET',
+        mode: 'cors',
+      })
+        .then(function (prm) {
+          return prm.json();
+        })
+        .then(async function (rep) {
+          const matche = rep['matche'];
+          let ville = matche['city']; //recuper la ville pour l'utiliser comme parametre dans l'api weather
+
+          let date = new Date(matche.date);
+          var dateFormat = // ecrire la date sous forme yyyy-mm-dd car c'est le seul format que l'api wether accepte
+            date.getFullYear() +
+            '-' +
+            (date.getMonth() + 1) +
+            '-' +
+            date.getDate();
+          console.log(ville);
+          console.log(dateFormat);
+          await fetch(
+            'https://api.weatherapi.com/v1/forecast.json?key=2c0cb798ae504ac789d65429212411&q=' +
+              ville +
+              '&dt=' +
+              dateFormat
+          )
+            .then((prm) => prm.json())
+            .then((rep) => {
+              //recuperer qlq infos sur la meteo du matche
+              console.log(rep);
+              const h4 = `${dateFormat}'s weather in ${ville}`;
+              const forecast = rep.forecast;
+              const astro = forecast.forecastday[0].astro;
+              const day = forecast.forecastday[0].day;
+              const condition = day.condition;
+              console.log(condition.icon);
+              var div1 = `<img
+     src="https:${condition.icon}"
+     alt="Weather">`;
+              div1 += `<p>${condition.text}</p>`;
+
+              var tbody = `<tr> <th> sunrise : ${astro.sunrise} <br> sunset : ${astro.sunset} </th> `;
+              tbody += `<th> moonrise : ${astro.moonrise} <br> moonset : ${astro.moonset} </th>`;
+
+              tbody += `<th> Max :<br> ${day.maxtemp_c} °C  </th>`;
+              tbody += `<th> Min :<br> ${day.mintemp_c} °C  </th>`;
+              tbody += `<th> Avg :<br> ${day.avgtemp_c} °C  </th>`;
+              tbody += `<th> MaxWind  :<br> ${day.maxwind_kph} KPH  </th> </tr>`;
+              const hour = forecast.forecastday[0].hour;
+              var tbody2 = '<tr> <th> Hours </th>';
+              let i = 0;
+              while (i < 24) {
+                let d = new Date(hour[i].time);
+                tbody2 += `<th>${d.toLocaleTimeString()}</th>`;
+                i = i + 3;
+              }
+              tbody2 += '</tr> <tr> <th> Icons </th>';
+
+              let j = 0;
+              while (j < 24) {
+                let condition = hour[j].condition;
+
+                tbody2 += `<th><img
+     src="https:${condition.icon}"
+     alt=""></th>`;
+                j = j + 3;
+              }
+              tbody2 += '</tr> ';
+              document.querySelector('#h4').innerHTML = h4;
+              document.querySelector('#div1').innerHTML = div1;
+              document.querySelector('#table').innerHTML = tbody;
+              document.querySelector('#table2').innerHTML = tbody2;
+            })
+            .catch((err) => {
+              console.log('Client error = ', err);
+            })
+            .catch((err) => {
+              console.log('Server error = ', err);
+            });
+        })
+
+        .catch((err) => {
+          console.log('Client error = ', err);
+        })
+        .catch((err) => {
+          console.log('Server error = ', err);
+        });
+    }
+    loadMatcheData();
+  </script>
+</html>

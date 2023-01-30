@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="list.css" />
+  </head>
+  <body>
+    <button onclick="window.location.replace('listClub.html')">
+      Club list
+    </button>
+    <h2>La liste des joueurs</h2>
+    <div class="grid-container"></div>
+    <div class="btn"></div>
+    <script>
+      LoadJoueur();
+      async function LoadJoueur() {
+        await fetch('http://localhost:3200/api/listJoueurs', {
+          headers: {
+            Accept: '*/*',
+            'Accept-Language': 'fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3',
+          },
+          method: 'GET',
+          mode: 'cors',
+        })
+          .then((res) => {
+            return res.json();
+          })
+          .then((data) => {
+            console.log(data);
+            let clubs = '';
+            for (let index = 0; index < data.length; index++) {
+              clubs += '<div class="grid-item">';
+              clubs += `<img style="height:100px;" 
+style="width:50%;" alt="${data[index].name}" src="${data[index].photo}"/>`;
+              clubs += `<br> <strong>${data[index].name}</strong> <br>`;
+              clubs += `<button onclick="window.location.replace('playerDetails.html?id=${data[index].player_id}')"> Display Details  </button>`;
+              clubs += `</div>`;
+            }
+            btn = `<button  onclick="window.location.replace('createPlayer.html')"> Create a new Player </button>`;
+
+            document.querySelector('.grid-container').innerHTML = clubs;
+            document.querySelector('.btn').innerHTML = btn;
+          })
+          .catch((err) => {
+            console.log('err client', err);
+          })
+          .catch((err) => {
+            console.log('err server', err);
+          });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Create a match</h1>
+    <button onclick="window.location.replace('NotYetPlayed.html')">
+      Not Played Matches
+    </button>
+    <button onclick="window.location.replace('listMatch.html')">
+      all matches
+    </button>
+    <form action="http://localhost:3200/api/createMatch" method="post">
+      <select name="idGuest" id="idGuest"></select>
+      <select name="idVisitor" id="idVisitor"></select>
+      <input type="datetime-local" name="date" id="date" />
+      <input type="submit" value="confirmer" />
+    </form>
+    <script>
+      loadClubs();
+      async function loadClubs() {
+        await fetch('http://localhost:3200/api/listClubs', {
+          headers: {
+            Accept: '*/*',
+            'Accept-Language': 'fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3',
+            authorization: 'JWT ' + window.localStorage.getItem('token'),
+          },
+          method: 'GET',
+          mode: 'cors',
+        })
+          .then((res) => {
+            return res.json();
+          })
+          .then((data) => {
+            let options = '';
+            for (let index = 0; index < data.length; index++) {
+              options +=
+                '<option value=' +
+                data[index]['id'] +
+                '> ' +
+                data[index]['nom'] +
+                ' </option>';
+            }
+            document.getElementById('idGuest').innerHTML = options;
+            document.querySelector('#idVisitor').innerHTML = options;
+          })
+          .catch((err) => {
+            console.log('client error :', err);
+          })
+          .catch((err) => {
+            console.log('server error : ', err);
+          });
+      }
+
+      async function createMatch(form) {
+        await fetch('http://localhost:3200/api/createMatch', {
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: 'JWT ' + window.localStorage.getItem('token'),
+          },
+          body: JSON.stringify(form),
+          method: 'POST',
+        })
+          .then((res) => {
+            if (res.status === 201) {
+              alert('Matche crée avec succes');
+              window.location.replace('listMatch.html');
+            } else {
+              alert('Match non crée !');
+            }
+          })
+          .catch((err) => console.log('error clien', err))
+          .catch((err) => {
+            clg('error serveur', err);
+          });
+      }
+      document.querySelector('form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        //Nouvel object JSON à remplir avec la data
+        let form = new FormData(e.target);
+        //jsonForm = Object.fromEntries(form.entries())
+        let d = new Date(form.get('date'));
+        let jsonForm = {
+          id_guest: form.get('idGuest'),
+          id_visitor: form.get('idVisitor'),
+          date:
+            d.getFullYear() +
+            '-' +
+            parseInt(d.getMonth() + 1) +
+            '-' +
+            d.getDate() +
+            ' ' +
+            d.toLocaleTimeString(),
+        };
+        createMatch(jsonForm);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Create Club</h1>
+    <button onclick="window.location.replace('NotYetPlayed.html')">
+      Not Played Matches
+    </button>
+    <button onclick="window.location.replace('listMatch.html')">
+      all matches
+    </button>
+    <button onclick="window.location.replace('listClub.html')">
+      Club list
+    </button>
+
+    <form
+      action="http://localhost:3200/api/createClub"
+      method="post"
+      class="form"
+    >
+      <label for="">Country :</label>
+      <select name="pays" id="pays"></select>
+      <label for="">Name :</label>
+      <input type="text" id="nom" name="nom" />
+      <label for="">Ville :</label>
+      <input type="text" id="ville" name="ville" />
+      <label for="">Logo :</label>
+      <input
+        type="file"
+        id="logo"
+        name="logo"
+        accept="image/png, image/jpeg"
+        id="logo"
+      />
+      <input id="submit" type="submit" value="submit" />
+    </form>
+
+    <script>
+      async function loadPays() {
+        await fetch('http://localhost:3200/api/listPays', {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0',
+            Accept: '*/*',
+            'Accept-Language': 'fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3',
+          },
+          method: 'GET',
+          mode: 'cors',
+        })
+          .then(function (prm) {
+            return prm.json();
+          })
+          .then(function (rep) {
+            console.log(rep);
+            let options = '';
+            for (let index = 0; index < rep.length; index++) {
+              options +=
+                '<option value=' +
+                rep[index]['id'] +
+                '> ' +
+                rep[index]['nom'] +
+                ' </option>';
+            }
+            document.querySelector('#pays').innerHTML = options;
+          })
+          .catch((err) => {
+            console.log('Client error = ', err);
+          })
+          .catch((err) => {
+            console.log('Server error = ', err);
+          });
+      }
+      loadPays();
+      async function createClub(form) {
+        await fetch('http://localhost:3200/api/createClub', {
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: 'JWT ' + window.localStorage.getItem('token'),
+          },
+          body: JSON.stringify(form),
+          method: 'POST',
+        })
+          .then((res) => {
+            if (res.status === 201) {
+              alert('Club crée avec succes');
+              window.location.replace('listClub.html');
+            } else {
+              alert('Match non crée !');
+            }
+          })
+
+          .catch((err) => console.log(err));
+      }
+
+      document.querySelector('form').addEventListener('submit', function (e) {
+        console.log(e.target);
+        e.preventDefault();
+
+        let form = new FormData(e.target);
+
+        let jsonForm = {
+          pays: form.get('pays'),
+          nom: form.get('nom'),
+          ville: form.get('ville'),
+          logo: form.get('logo').toString(), //how to do it ?
+        };
+        createClub(jsonForm);
+      });
+    </script>
+  </body>
+</html>
